@@ -22,8 +22,4 @@ export class PetUpdateDTO {
     @IsDefined()
     @MaxLength(30)
     country: string;
-
-    @IsDefined()
-    @MaxLength(89)
-    user: string;
 }

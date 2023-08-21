@@ -10,5 +10,8 @@ export class User {
     username: string;
 
     @Column({length: 89, nullable: false})
-    password?: string;
+    password: string;
+
+    @Column()
+    hashedRt?: string;
 }

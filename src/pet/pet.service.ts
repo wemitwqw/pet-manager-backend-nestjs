@@ -9,7 +9,6 @@ import { PetUpdateDTO } from 'src/dto/pet-update.dto';
 import { Color } from 'src/dao/color.entity';
 import { Country } from 'src/dao/country.entity';
 import { User } from 'src/dao/user.entity';
-import { AuthorizedRequest } from 'src/auth/authorized-request.model';
 
 @Injectable()
 export class PetService {
@@ -70,7 +69,7 @@ export class PetService {
 
     }
 
-    async create(req: AuthorizedRequest, petUpdateDTO: PetUpdateDTO): Promise<PetDTO> {
+    async create(username: string, petUpdateDTO: PetUpdateDTO): Promise<PetDTO> {
         const typeFromDb = await this.typeRepository
                             .findOne({where: {animal: petUpdateDTO.type}})
                             .catch();
@@ -81,7 +80,7 @@ export class PetService {
                             .findOne({where: {name: petUpdateDTO.country}})
                             .catch();
         const userFromDb = await this.userRepository
-                            .findOne({where: {username: req.user.username}})
+                            .findOne({where: {username: username}})
                             .catch(() => {throw new InternalServerErrorException('USER NOT FOUND/AUTH ERROR')});
 
         let petToSave = await this.petMapper.updateDtoToEntity(petUpdateDTO, userFromDb).catch();
@@ -101,18 +100,23 @@ export class PetService {
             );
     }
 
-    async update(id: number, petUpdateDTO: PetUpdateDTO): Promise<PetDTO> {
+    async update(id: number, petUpdateDTO: PetUpdateDTO, userId: number): Promise<PetDTO> {
         const petFromDb = await this.petRepository.findOne({
             where: {id: id},
             relations: {
                 type: true,
                 color: true,
                 country: true,
+                user: true,
             }
         }).catch(() => {throw new InternalServerErrorException});
 
         if (!petFromDb) {
             throw new NotFoundException('Pet not found');
+        }
+
+        if (petFromDb.user.id !== userId) {
+            throw new UnauthorizedException('Current user does not have acces to this pet');
         }
 
         if (petUpdateDTO.type != petFromDb.type.animal) {
@@ -146,14 +150,25 @@ export class PetService {
             );
     }
 
-    async delete(id: number): Promise<string> {
-        try {
-            this.petRepository.delete(id);
-            return `Deleted id: ${id}`;
-
-        } catch (err) {
-            throw new InternalServerErrorException('Error while deleting pet');
+    async delete(id: number, userId: number): Promise<string> {
+        const petFromDb = await this.petRepository.findOne({
+            where: {id: id},
+            relations: {
+                type: true,
+                color: true,
+                country: true,
+                user: true,
+            }
+        }).catch(() => {throw new InternalServerErrorException});
+        
+        if (petFromDb.user.id !== userId) {
+            throw new UnauthorizedException('Current user does not have acces to this pet');
         }
+
+        await this.petRepository.delete(id)
+            .catch(() => {throw new InternalServerErrorException('Error while deleting pet')});
+        
+        return `Deleted id: ${id}`;
     }
 
 

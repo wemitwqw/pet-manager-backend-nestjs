@@ -12,9 +12,9 @@ export class PetController {
     @UseGuards(AuthGuard)
     @Get()
     @HttpCode(200)
-    getPets(@Request() req: any): Promise<PetDTO[]> {
-        const { id } = req.user;
-        return this.petService.findAllByUser(id);
+    getPets(@Request() req: AuthorizedRequest): Promise<PetDTO[]> {
+        const userId = req.user.sub;
+        return this.petService.findAllByUser(userId);
     }
 
     @UseGuards(AuthGuard)
@@ -29,21 +29,24 @@ export class PetController {
     @Post()
     @HttpCode(201)
     async create(@Request() req: AuthorizedRequest, @Body() petUpdateDTO: PetUpdateDTO) {
-        return this.petService.create(req, petUpdateDTO);
+        const username = req.user.username;
+        return this.petService.create(username, petUpdateDTO);
     }
 
     @UseGuards(AuthGuard)
     @Put(':id')
     @HttpCode(200)
-    async update(@Param('id') id: number, @Body() createPetDTO: PetUpdateDTO) {
-        return this.petService.update(id, createPetDTO);
+    async update(@Request() req: AuthorizedRequest, @Param('id') id: number, @Body() createPetDTO: PetUpdateDTO) {
+        const userId = req.user.sub;
+        return this.petService.update(id, createPetDTO, userId);
     }
 
     @UseGuards(AuthGuard)
     @Delete(':id')
     @HttpCode(200)
-    delete(@Param('id') id: number): Promise<string>{
-        return this.petService.delete(id);
+    delete(@Request() req: AuthorizedRequest, @Param('id') id: number): Promise<string>{
+        const userId = req.user.sub;
+        return this.petService.delete(id, userId);
     }
     
 }

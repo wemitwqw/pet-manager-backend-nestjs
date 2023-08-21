@@ -3,14 +3,10 @@ import { Pet } from "src/dao/pet.entity";
 import { PetDTO } from "src/dto/pet.dto";
 import { PetUpdateDTO } from "src/dto/pet-update.dto";
 import { UserDTO } from "src/dto/user.dto";
+import { User } from "src/dao/user.entity";
 
 @Injectable()
 export class PetMapper {
-    // ({
-    //     ...entity,
-    //     additionalParam: 1
-    // })
-
     public async entityToDto(entity: Pet): Promise<PetDTO> {
         const dto : PetDTO = ({
             id: entity.id,
@@ -18,8 +14,7 @@ export class PetMapper {
             age: entity.age,
             type: entity.type,
             color: entity.color,
-            country: entity.country,
-            // user: new UserDTO(entity.user.id, entity.user.username)
+            country: entity.country
         });
         return dto;
     }
@@ -51,7 +46,7 @@ export class PetMapper {
         return entities;
     }
 
-    public async updateDtoToEntity(dto: PetUpdateDTO, user: UserDTO): Promise<Pet> {
+    public async updateDtoToEntity(dto: PetUpdateDTO, user: User): Promise<Pet> {
         const entity: Pet = ({
             ...dto,
             type: {animal: dto.type},

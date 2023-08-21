@@ -1,8 +1,9 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Request, UseGuards } from '@nestjs/common';
 import { PetService } from './pet.service';
-import { PetUpdateDTO } from 'src/dto/petUpdate.dto';
+import { PetUpdateDTO } from 'src/dto/pet-update.dto';
 import { PetDTO } from 'src/dto/pet.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthorizedRequest } from 'src/auth/authorized-request.model';
 
 @Controller('pet')
 export class PetController {
@@ -19,15 +20,15 @@ export class PetController {
     @UseGuards(AuthGuard)
     @Get(':id')
     @HttpCode(200)
-    async getPetById(@Param('id') id: number, @Request() req: any): Promise<PetDTO> {
-        const userId = req.user.id;
+    async getPetById(@Request() req: AuthorizedRequest, @Param('id') id: number): Promise<PetDTO> {
+        const userId = req.user.sub;
         return this.petService.findById(id, userId);
     }
 
     @UseGuards(AuthGuard)
     @Post()
     @HttpCode(201)
-    async create(@Request() req: any, @Body() petUpdateDTO: PetUpdateDTO) {
+    async create(@Request() req: AuthorizedRequest, @Body() petUpdateDTO: PetUpdateDTO) {
         return this.petService.create(req, petUpdateDTO);
     }
 

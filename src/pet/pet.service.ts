@@ -5,10 +5,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PetMapper } from '../mapper/pet.mapper';
 import { PetDTO } from 'src/dto/pet.dto';
 import { PetType } from 'src/dao/type.entity';
-import { PetUpdateDTO } from 'src/dto/petUpdate.dto';
+import { PetUpdateDTO } from 'src/dto/pet-update.dto';
 import { Color } from 'src/dao/color.entity';
 import { Country } from 'src/dao/country.entity';
 import { User } from 'src/dao/user.entity';
+import { AuthorizedRequest } from 'src/auth/authorized-request.model';
 
 @Injectable()
 export class PetService {
@@ -69,7 +70,7 @@ export class PetService {
 
     }
 
-    async create(req: any, petUpdateDTO: PetUpdateDTO): Promise<PetDTO> {
+    async create(req: AuthorizedRequest, petUpdateDTO: PetUpdateDTO): Promise<PetDTO> {
         const typeFromDb = await this.typeRepository
                             .findOne({where: {animal: petUpdateDTO.type}})
                             .catch();

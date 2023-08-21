@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Pet } from "src/dao/pet.entity";
 import { PetDTO } from "src/dto/pet.dto";
-import { PetUpdateDTO } from "src/dto/petUpdate.dto";
+import { PetUpdateDTO } from "src/dto/pet-update.dto";
 import { UserDTO } from "src/dto/user.dto";
 
 @Injectable()

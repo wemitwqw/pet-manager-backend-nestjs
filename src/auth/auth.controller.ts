@@ -9,7 +9,7 @@ import {
   UseGuards
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserRequestDTO } from 'src/dto/user-request.dto';
+import { AuthDTO } from 'src/dto/auth.dto';
 import { AuthGuard } from './auth.guard';
 
 @Controller('auth')
@@ -19,8 +19,8 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  signIn(@Body() userRequestDTO: UserRequestDTO) {
-    return this.authService.signIn(userRequestDTO);
+  signIn(@Body() authDTO: AuthDTO) {
+    return this.authService.signIn(authDTO);
   }
 
   @UseGuards(AuthGuard)

@@ -1,5 +1,5 @@
 export class UserDTO {
-    id?: number;
+    id: number;
     username: string;
 
     constructor(id: number, name: string) {

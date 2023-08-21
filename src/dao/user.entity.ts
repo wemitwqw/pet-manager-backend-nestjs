@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 export class User {
 
     @PrimaryGeneratedColumn()
-    id: number;
+    id?: number;
 
     @Column({length: 30, nullable: false})
     username: string;
@@ -12,6 +12,11 @@ export class User {
     @Column({length: 89, nullable: false})
     password: string;
 
-    @Column()
+    @Column({nullable: true})
     hashedRt?: string;
+
+    constructor(username: string, password: string) {
+        this.username = username;
+        this.password = password;
+    }
 }

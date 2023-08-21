@@ -2,13 +2,12 @@ import { Injectable } from "@nestjs/common";
 import { Pet } from "src/dao/pet.entity";
 import { PetDTO } from "src/dto/pet.dto";
 import { PetUpdateDTO } from "src/dto/pet-update.dto";
-import { UserDTO } from "src/dto/user.dto";
 import { User } from "src/dao/user.entity";
 
 @Injectable()
 export class PetMapper {
     public async entityToDto(entity: Pet): Promise<PetDTO> {
-        const dto : PetDTO = ({
+        const dto: PetDTO = ({
             id: entity.id,
             name: entity.name,
             age: entity.age,

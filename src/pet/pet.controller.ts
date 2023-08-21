@@ -2,14 +2,14 @@ import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Request, Use
 import { PetService } from './pet.service';
 import { PetUpdateDTO } from 'src/dto/pet-update.dto';
 import { PetDTO } from 'src/dto/pet.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { AuthorizedRequest } from 'src/auth/authorized-request.model';
+// import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthorizedRequest } from 'src/types/authorized-request.model';
 
 @Controller('pet')
 export class PetController {
     constructor(private readonly petService: PetService) {}
 
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     @Get()
     @HttpCode(200)
     getPets(@Request() req: AuthorizedRequest): Promise<PetDTO[]> {
@@ -17,7 +17,7 @@ export class PetController {
         return this.petService.findAllByUser(userId);
     }
 
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     @Get(':id')
     @HttpCode(200)
     async getPetById(@Request() req: AuthorizedRequest, @Param('id') id: number): Promise<PetDTO> {
@@ -25,7 +25,7 @@ export class PetController {
         return this.petService.findById(id, userId);
     }
 
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     @Post()
     @HttpCode(201)
     async create(@Request() req: AuthorizedRequest, @Body() petUpdateDTO: PetUpdateDTO) {
@@ -33,7 +33,7 @@ export class PetController {
         return this.petService.create(username, petUpdateDTO);
     }
 
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     @Put(':id')
     @HttpCode(200)
     async update(@Request() req: AuthorizedRequest, @Param('id') id: number, @Body() createPetDTO: PetUpdateDTO) {
@@ -41,7 +41,7 @@ export class PetController {
         return this.petService.update(id, createPetDTO, userId);
     }
 
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     @Delete(':id')
     @HttpCode(200)
     delete(@Request() req: AuthorizedRequest, @Param('id') id: number): Promise<string>{

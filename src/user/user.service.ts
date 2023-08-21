@@ -1,9 +1,8 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/dao/user.entity';
-import { AuthDTO } from 'src/dto/auth.dto';
 import { UserDTO } from 'src/dto/user.dto';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 
 import { UserMapper } from 'src/mapper/user.mapper';
 
@@ -42,5 +41,26 @@ export class UserService {
         }
 
         return doesExist;
+    }
+
+    async updateRtHash(userId: number, hash: string) {
+        await this.userRepository.update(userId, {hashedRt: hash}).catch();
+    }
+
+    async removeRtHash(userId: number) {
+        const userFromDb = await this.userRepository.findOne({
+            where: {
+                id: userId,
+                hashedRt: Not(IsNull()),
+            }
+        }).catch();
+
+        if (!userFromDb) {
+            throw new ForbiddenException('Access denied');
+        }
+
+        userFromDb.hashedRt = null;
+
+        await this.userRepository.save(userFromDb).catch();
     }
 }

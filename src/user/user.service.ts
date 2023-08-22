@@ -22,6 +22,14 @@ export class UserService {
         return userFromDb;
     }
 
+    async findById(id: number): Promise<User> {
+        const userFromDb = await this.userRepository.findOne({
+            where: {id: id}
+        }).catch(() => {throw new InternalServerErrorException('Error while signing in')});
+        
+        return userFromDb;
+    }
+
     async createUser(username: string, hash: string): Promise<UserDTO> {
         const userToSave: User = new User(username, hash);
         
@@ -44,7 +52,11 @@ export class UserService {
     }
 
     async updateRtHash(userId: number, hash: string) {
-        await this.userRepository.update(userId, {hashedRt: hash}).catch();
+        const userFromDb = await this.findById(userId).catch();
+        userFromDb.hashedRt = hash;
+
+        await this.userRepository.save(userFromDb).catch();
+        // await this.userRepository.update(userId, {hashedRt: hash}).catch();
     }
 
     async removeRtHash(userId: number) {

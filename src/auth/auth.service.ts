@@ -1,11 +1,12 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthDTO } from 'src/dto/auth.dto';
 import { UserService } from 'src/user/user.service';
 
 import * as bcrypt from 'bcrypt';
-import { jwtConfig } from 'src/conf/jwt.config';
 import { Tokens } from 'src/types/tokens.type';
+import { createHash } from 'crypto';
+import { promisify } from 'util';
 
 @Injectable()
 export class AuthService {
@@ -14,11 +15,6 @@ export class AuthService {
       private jwtService: JwtService
   ) {}
  
-  async updateRtHashInUser(userId: number, rt: string) {
-    const hash = await this.hashData(rt);
-    await this.userService.updateRtHash(userId, hash);
-  }
-
   async signIn(authDTO: AuthDTO): Promise<Tokens> {
     const user = await this.userService.findByUsername(authDTO.username)
       .catch(() => {throw new InternalServerErrorException('Error while signing in')});
@@ -65,14 +61,14 @@ export class AuthService {
         sub: userId,
         username: username,
       }, {
-        secret: `${jwtConfig.secret}`,
+        secret: `${process.env.JWT_SECRET}`,
         expiresIn: 60 * 15,
       }),
       this.jwtService.signAsync({
         sub: userId,
         username: username,
       }, {
-        secret: `${jwtConfig.refreshSecret}`,
+        secret: `${process.env.JWT_REFRESH_SECRET}`,
         expiresIn: 60 * 60 * 24 * 7,
       })
     ]);
@@ -87,7 +83,30 @@ export class AuthService {
     await this.userService.removeRtHash(userId).catch();
   }
 
-  async refresh() {
+  async refreshTokens(userId: number, rt: string) {
+    const userFromDb = await this.userService.findById(userId).catch();
+    if (!userFromDb || !userFromDb.hashedRt) {throw new ForbiddenException('Refresh token not eligible for refresh')}
+    
+    const hashedRt = this.encryptInSHA256(rt);
+    if (hashedRt !== userFromDb.hashedRt) {throw new ForbiddenException('Refresh token not eligible for refresh')}
 
+    const tokens = await this.getTokens(userFromDb?.id, userFromDb?.username);
+    await this.updateRtHashInUser(userFromDb.id, tokens.refresh_token);
+    
+    return tokens;
+  }
+
+  encryptInSHA256(rt: string): string {
+    const hash = createHash('sha256');
+    hash.update(rt);
+    return hash.digest("base64");
+  }
+
+  async updateRtHashInUser(userId: number, rt: string) {
+    const hash = createHash('sha256');
+    hash.update(rt);
+    const newHashedRt = hash.digest("base64");
+    
+    await this.userService.updateRtHash(userId, newHashedRt);
   }
 }

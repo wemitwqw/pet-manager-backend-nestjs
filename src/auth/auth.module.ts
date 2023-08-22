@@ -10,12 +10,7 @@ import { RtStrategy } from 'src/strategy/rt.stratery';
 @Module({
     imports: [
         UserModule,
-        JwtModule.register({
-            global: true,
-            secret: `${jwtConfig.secret}`,
-            // signOptions: { expiresIn: 1000},
-        }),
-        // JwtModule.register({}),
+        JwtModule.register({}),
     ],
     controllers: [AuthController],
     providers: [AuthService, AtStrategy, RtStrategy]

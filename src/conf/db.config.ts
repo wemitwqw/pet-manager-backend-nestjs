@@ -12,7 +12,7 @@ export class DatabaseConfiguration implements TypeOrmOptionsFactory {
         entities: [
             __dirname + '/../**/*.entity{.ts,.js}',
         ],
-        logging: true,
+        logging: false,
         synchronize: true
     };
   }

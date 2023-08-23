@@ -6,7 +6,6 @@ import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { Tokens } from 'src/types/tokens.type';
 import { createHash } from 'crypto';
-import { promisify } from 'util';
 
 @Injectable()
 export class AuthService {
@@ -51,6 +50,23 @@ export class AuthService {
     return tokens;
   }
 
+  async logout(userId: number) {
+    await this.userService.removeRtHash(userId).catch();
+  }
+
+  async refreshTokens(userId: number, rt: string) {
+    const userFromDb = await this.userService.findById(userId).catch();
+    if (!userFromDb || !userFromDb.hashedRt) {throw new ForbiddenException('Refresh token not eligible for refresh')}
+    
+    const hashedRt = this.encryptInSHA256(rt);
+    if (hashedRt !== userFromDb.hashedRt) {throw new ForbiddenException('Refresh token not eligible for refresh')}
+
+    const tokens = await this.getTokens(userFromDb?.id, userFromDb?.username);
+    await this.updateRtHashInUser(userFromDb.id, tokens.refresh_token);
+    
+    return tokens;
+  }
+
   async hashData(data: string): Promise<string> {
     return await bcrypt.hash(data, 10);
   } 
@@ -77,23 +93,6 @@ export class AuthService {
       access_token: at,
       refresh_token: rt,
     }
-  }
-
-  async logout(userId: number) {
-    await this.userService.removeRtHash(userId).catch();
-  }
-
-  async refreshTokens(userId: number, rt: string) {
-    const userFromDb = await this.userService.findById(userId).catch();
-    if (!userFromDb || !userFromDb.hashedRt) {throw new ForbiddenException('Refresh token not eligible for refresh')}
-    
-    const hashedRt = this.encryptInSHA256(rt);
-    if (hashedRt !== userFromDb.hashedRt) {throw new ForbiddenException('Refresh token not eligible for refresh')}
-
-    const tokens = await this.getTokens(userFromDb?.id, userFromDb?.username);
-    await this.updateRtHashInUser(userFromDb.id, tokens.refresh_token);
-    
-    return tokens;
   }
 
   encryptInSHA256(rt: string): string {

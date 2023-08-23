@@ -1,51 +1,46 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { PetService } from './pet.service';
 import { PetUpdateDTO } from 'src/dto/pet-update.dto';
 import { PetDTO } from 'src/dto/pet.dto';
-// import { AuthGuard } from 'src/auth/auth.guard';
-import { AuthorizedRequest } from 'src/types/authorized-request.model';
+import { AtGuard } from 'src/common/guard';
+import { GetCurrentUser, GetCurrentUserId } from 'src/common/decorator';
 
 @Controller('pet')
 export class PetController {
     constructor(private readonly petService: PetService) {}
 
-    // @UseGuards(AuthGuard)
+    @UseGuards(AtGuard)
     @Get()
     @HttpCode(200)
-    getPets(@Request() req: AuthorizedRequest): Promise<PetDTO[]> {
-        const userId = req.user.sub;
+    getPets(@GetCurrentUserId() userId: number): Promise<PetDTO[]> {
         return this.petService.findAllByUser(userId);
     }
 
-    // @UseGuards(AuthGuard)
+    @UseGuards(AtGuard)
     @Get(':id')
     @HttpCode(200)
-    async getPetById(@Request() req: AuthorizedRequest, @Param('id') id: number): Promise<PetDTO> {
-        const userId = req.user.sub;
+    async getPetById(@GetCurrentUserId() userId: number, @Param('id') id: number): Promise<PetDTO> {
         return this.petService.findById(id, userId);
     }
 
-    // @UseGuards(AuthGuard)
+    @UseGuards(AtGuard)
     @Post()
     @HttpCode(201)
-    async create(@Request() req: AuthorizedRequest, @Body() petUpdateDTO: PetUpdateDTO) {
-        const username = req.user.username;
+    async create(@GetCurrentUser('username') username: string, @Body() petUpdateDTO: PetUpdateDTO): Promise<PetDTO> {
         return this.petService.create(username, petUpdateDTO);
     }
 
-    // @UseGuards(AuthGuard)
+    @UseGuards(AtGuard)
     @Put(':id')
     @HttpCode(200)
-    async update(@Request() req: AuthorizedRequest, @Param('id') id: number, @Body() createPetDTO: PetUpdateDTO) {
-        const userId = req.user.sub;
+    async update(@GetCurrentUserId() userId: number, @Param('id') id: number, @Body() createPetDTO: PetUpdateDTO): Promise<PetDTO> {
         return this.petService.update(id, createPetDTO, userId);
     }
 
-    // @UseGuards(AuthGuard)
+    @UseGuards(AtGuard)
     @Delete(':id')
     @HttpCode(200)
-    delete(@Request() req: AuthorizedRequest, @Param('id') id: number): Promise<string>{
-        const userId = req.user.sub;
+    async delete(@GetCurrentUserId() userId: number, @Param('id') id: number): Promise<string> {
         return this.petService.delete(id, userId);
     }
     
